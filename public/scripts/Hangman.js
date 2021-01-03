@@ -134,11 +134,12 @@
                 if (wrong > 5) {
                     gameOver = true;
                     drawGameOver();
+                    dsl.playSong(looser);
                 }
                 if(correct.join("") === word){
                     gameOver = true;
                     drawWin();
-                    dsl.playSong(tetris);
+                    dsl.playSong(winner);
                 }
             }
         });
