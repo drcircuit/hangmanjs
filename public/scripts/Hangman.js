@@ -112,7 +112,7 @@
             if (gameOver) {
                 return;
             }
-            if (guesses.indexOf(e.key) > 01) {
+            if (guesses.indexOf(e.key) > -1) {
                 return;
             }
             if (alphabeth.indexOf(e.key) > -1) {
