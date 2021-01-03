@@ -13,7 +13,7 @@
     fetch("/api/word")
         .then(res => res.text())
         .then(w => {
-            word = w;
+            word = w.toLowerCase();
             correct = Array(word.length);
             setup();
         });
@@ -107,7 +107,6 @@
         guesses = Array(alphabeth.length);
         drawAlphabet(guesses);
         let wrong = 0;
-
         document.addEventListener("keyup", (e) => {
             if (gameOver) {
                 return;
@@ -121,8 +120,10 @@
                 if (indices.length > 0) {
                     indices.forEach(i => {
                         correct[i] = word[i];
+                        dsl.playSong(tada, WAVEFORMS.SINE);
                     });
                 } else {
+                    dsl.playSong(dumdumdo, WAVEFORMS.SAW)
                     wrong++;
                 }
                 dcl.clear();
@@ -137,6 +138,7 @@
                 if(correct.join("") === word){
                     gameOver = true;
                     drawWin();
+                    dsl.playSong(tetris);
                 }
             }
         });
