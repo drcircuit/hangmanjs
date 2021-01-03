@@ -27,8 +27,8 @@
         dcl.line(baseX, baseY, baseX, topY, 5, WHITE);
         dcl.line(baseX, topY, ropeX, topY, 5, WHITE);
         dcl.line(baseX, 200, 200, topY, 5, WHITE);
-        dcl.line(50, baseY, topY+ropeLength, baseY, 5, WHITE);
-        dcl.line(ropeX, topY, ropeX, topY+ropeLength, 5, WHITE);
+        dcl.line(50, baseY, topY + ropeLength, baseY, 5, WHITE);
+        dcl.line(ropeX, topY, ropeX, topY + ropeLength, 5, WHITE);
     }
 
     function drawLetterLines(word, correct) {
@@ -91,11 +91,12 @@
     function drawGameOver() {
         dcl.rect(0, 0, scr.width, scr.height, dcl.color(0, 0, 0, .8));
         dcl.text("GAME OVER", scr.width / 2, scr.height / 2, RED, "ARIAL", 150);
+        dcl.text(word, scr.width / 2, scr.height / 2 + 160, YELLOW, "Arial", 40);
     }
-    function drawWin(){
+    function drawWin() {
         dcl.rect(0, 0, scr.width, scr.height, dcl.color(0, 0, 0, .8));
         dcl.text("CORRECT!", scr.width / 2, scr.height / 2, GREEN, "ARIAL", 150);
-    
+
     }
     function setup() {
         let gameOver = false;
@@ -133,10 +134,10 @@
                 drawHangman(wrong);
                 if (wrong > 5) {
                     gameOver = true;
-                    drawGameOver();
+                    drawGameOver(word);
                     dsl.playSong(looser);
                 }
-                if(correct.join("") === word){
+                if (correct.join("") === word) {
                     gameOver = true;
                     drawWin();
                     dsl.playSong(winner);
