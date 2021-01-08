@@ -1,23 +1,74 @@
 /** Hangman */
+let resetcount = 0;
 (function () {
+    let score = 0;
+    let teacher = 0;
     let scr;
     let word;
     let correct = "";
     let guesses;
+    let oldword = "";
     let alphabeth = [
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
         'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
         'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
         'y', 'z', 'æ', 'ø', 'å'
     ];
-    fetch("/api/word")
-        .then(res => res.text())
-        .then(w => {
-            word = w.toLowerCase();
-            correct = Array(word.length);
-            setup();
-        });
-
+    function getMode(skipPrompt) {
+        let qs = window.location.href.split("#");
+        if (qs.length > 1) {
+            if (qs[1] === "/single" || qs[1] === "/enkel") {
+                let w = prompt("Skriv inn ordet du vil bruke", localStorage.getItem("hangmanWord"));
+                localStorage.setItem("hangmanWord", w);
+                return "single";
+            } else if (qs[1] === "/customlist" || qs[1] === "/egenliste") {
+                if (!skipPrompt) {
+                    let wl = prompt("Skriv inn ordene du vil bruke, skill med komma", localStorage.getItem("hangmanWordList"));
+                    localStorage.setItem("hangmanWordList", wl);
+                    console.log(wl);
+                }
+                return "custom";
+            }
+        }
+        return "api";
+    }
+    function start(w) {
+        word = w.toLowerCase();
+        correct = Array(word.length);
+        setup();
+    }
+    function reset(skipPrompt) {
+        let mode = getMode(skipPrompt);
+        if (mode === "api") {
+            fetch("/api/word")
+                .then(res => res.text())
+                .then(w => {
+                    start(w);
+                });
+        } else if (mode === "single") {
+            start(localStorage.getItem("hangmanWord"));
+        } else {
+            let list = localStorage.getItem("hangmanWordList").split(",");
+            document.body.style.color = "#FFF";
+            console.log("hei");
+            if (word && word.length > 0) {
+                console.log(word);
+                console.log(list.indexOf(word));
+                list.splice(list.indexOf(word), 1);
+                console.log(list);
+                localStorage.setItem("hangmanWordList", list.join(","));
+                if (list.length < 1) {
+                    getMode();
+                    list = localStorage.getItem("hangmanWordList").split(",");
+                    word = "";
+                }
+                oldword = word;
+                word = "";
+            }
+            start(list[dcl.randomi(0, list.length)]);
+        }
+    }
+    reset();
     function drawGallow() {
         let baseY = scr.height - 100;
         let baseX = 100;
@@ -88,6 +139,13 @@
             dcl.line(300, 350, 380, 450, 5, WHITE);
         }
     }
+    function drawRestartMessage(){
+        dcl.text("Trykk ALT+s for å starte neste ny runde.", scr.width/2, scr.height/2+320, GREEN, "Arial",25);
+    }
+    function drawScore(){
+        dcl.text("LÆRER: "+teacher, 20, 40, dcl.color(255,160,0),"Arial", 40, null,"left");
+        dcl.text("ELEVER: "+score, scr.width-20,40,CYAN,"Arial",40, null, "right");
+    }
     function drawGameOver() {
         dcl.rect(0, 0, scr.width, scr.height, dcl.color(0, 0, 0, .8));
         dcl.text("GAME OVER", scr.width / 2, scr.height / 2, RED, "ARIAL", 150);
@@ -96,20 +154,28 @@
     function drawWin() {
         dcl.rect(0, 0, scr.width, scr.height, dcl.color(0, 0, 0, .8));
         dcl.text("CORRECT!", scr.width / 2, scr.height / 2, GREEN, "ARIAL", 150);
-
     }
     function setup() {
         let gameOver = false;
-        scr = dcl.setupScreen(window.innerWidth, window.innerHeight);
+        scr = dcl.setupScreen(window.innerWidth - 10, window.innerHeight - 100);
         scr.setBgColor('black');
         document.body.style.backgroundColor = 'black';
         drawGallow();
         drawLetterLines(word, correct);
+        drawScore();
         guesses = Array(alphabeth.length);
         drawAlphabet(guesses);
         let wrong = 0;
-        document.addEventListener("keyup", (e) => {
+        let handleKeys = function (e) {
             if (gameOver) {
+                if (e.key === "s" && e.altKey) {
+                    resetcount++;
+                    reset(true);
+                    document.removeEventListener("keyup", handleKeys);
+                    e.preventDefault();
+                    console.log("Resetcount is ", resetcount);
+                    return false;
+                }
                 return;
             }
             if (guesses.indexOf(e.key) > -1) {
@@ -128,6 +194,7 @@
                     wrong++;
                 }
                 dcl.clear();
+                drawScore();
                 drawGallow();
                 drawLetterLines(word, correct);
                 drawAlphabet(guesses);
@@ -136,14 +203,22 @@
                     gameOver = true;
                     drawGameOver(word);
                     dsl.playSong(looser);
+                    teacher++;
                 }
                 if (correct.join("") === word) {
                     gameOver = true;
                     drawWin();
                     dsl.playSong(winner);
+                    score++;
                 }
+                if(gameOver){
+                    drawRestartMessage();
+                }
+                
             }
-        });
+        }
+        
+        document.addEventListener("keyup", handleKeys);
     }
 
 })();
